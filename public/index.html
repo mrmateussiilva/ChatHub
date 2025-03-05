@@ -1,0 +1,65 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Painel de Mensagens</title>
+    <style>
+        body { font-family: Arial, sans-serif; text-align: center; }
+        #messages { max-width: 600px; margin: auto; padding: 10px; border: 1px solid #ddd; height: 400px; overflow-y: auto; }
+        .message { padding: 10px; border-bottom: 1px solid #ddd; }
+        .sender { font-weight: bold; color: #007bff; }
+    </style>
+</head>
+<body>
+
+    <h2>📩 Mensagens do WhatsApp</h2>
+    <div id="messages"></div>
+    <script>
+        const messagesDiv = document.getElementById("messages");
+        let socket;
+    
+        function connectWebSocket() {
+            socket = new WebSocket("https://fantastic-funicular-7vprgpg4664x2rg9r-3000.app.github.dev/");
+    
+            socket.onopen = () => {
+                console.log("✅ Conectado ao WebSocket");
+            };
+    
+            socket.onmessage = (event) => {
+                console.log("📩 Mensagem recebida:", event.data);
+                const message = JSON.parse(event.data);
+                displayMessage(message);
+            };
+    
+            socket.onerror = (error) => {
+                console.error("❌ Erro no WebSocket:", error);
+            };
+    
+            socket.onclose = () => {
+                console.warn("🔴 WebSocket desconectado! Tentando reconectar...");
+                setTimeout(connectWebSocket, 3000); // Tentar reconectar após 3 segundos
+            };
+        }
+    
+        function displayMessage(message) {
+            const div = document.createElement("div");
+            div.classList.add("message");
+            div.innerHTML = `<span class="sender">${message.sender}:</span> ${message.text}`;
+            messagesDiv.appendChild(div);
+            messagesDiv.scrollTop = messagesDiv.scrollHeight; // Rolar para última mensagem
+        }
+    
+        // Carregar mensagens antigas ao abrir a página
+        fetch("https://fantastic-funicular-7vprgpg4664x2rg9r-3000.app.github.dev/messages")
+            .then(response => response.json())
+            .then(data => data.forEach(displayMessage))
+            .catch(err => console.error("❌ Erro ao carregar mensagens:", err));
+    
+        connectWebSocket(); // Iniciar WebSocket ao carregar a página
+    </script>
+    
+    
+
+</body>
+</html>
